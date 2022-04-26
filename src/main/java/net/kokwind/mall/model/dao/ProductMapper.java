@@ -1,7 +1,9 @@
 package net.kokwind.mall.model.dao;
 
 import net.kokwind.mall.model.entity.Product;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ProductMapper {
     int deleteByPrimaryKey(Integer id);
 

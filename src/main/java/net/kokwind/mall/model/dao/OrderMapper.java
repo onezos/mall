@@ -1,7 +1,9 @@
 package net.kokwind.mall.model.dao;
 
 import net.kokwind.mall.model.entity.Order;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface OrderMapper {
     int deleteByPrimaryKey(Integer id);
 

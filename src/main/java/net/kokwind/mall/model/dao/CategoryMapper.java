@@ -1,7 +1,9 @@
 package net.kokwind.mall.model.dao;
 
 import net.kokwind.mall.model.entity.Category;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CategoryMapper {
     int deleteByPrimaryKey(Integer id);
 
