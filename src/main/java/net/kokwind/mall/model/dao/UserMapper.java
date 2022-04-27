@@ -2,7 +2,6 @@ package net.kokwind.mall.model.dao;
 
 import net.kokwind.mall.model.entity.User;
 import org.springframework.stereotype.Repository;
-
 @Repository
 public interface UserMapper {
     int deleteByPrimaryKey(Integer id);
