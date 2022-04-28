@@ -415,6 +415,7 @@ logback位置，设置日志记录规则并保存在本地，位置在logs文件
 点击`mybatis-generator：generate`生成
 
 ![img_4.png](img/img_4.png)
+
 生成代码如下
 
 ![img_5.png](img/img_5.png)
@@ -518,3 +519,792 @@ public class UserController {
 #### 0.7.3 测试是否正常运行
 
 ![img_8.png](img/img_8.png)
+
+### 0.8 AOP同意处理Web请求日志
+用filter把每个请求都打印出来，可以看到请求的url和参数。可以提高开发和调试的效率
+创建filter把请求的信息和返回的信息都打印出来。
+
+添加AOP依赖
+```
+        <!-- AOP依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+```
+新建实现截取请求响应的AOP类
+```java
+package net.kokwind.mall.filter;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+
+/**
+ * 描述：打印请求和响应信息
+ */
+@Aspect
+@Component
+public class WebLogAspect {
+    private final Logger log = LoggerFactory.getLogger(WebLogAspect.class);
+
+    @Pointcut("execution(public * net.kokwind.mall.controller.*.*(..)))")
+    public void webLog() {
+
+    }
+
+    @Before("webLog()")
+    public void doBefore(JoinPoint joinPoint) {
+        //收到请求，记录请求内容
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                .getRequestAttributes();
+        HttpServletRequest request = attributes.getRequest();
+
+        log.info("URL : " + request.getRequestURL().toString());
+        log.info("HTTP_METHOD :" + request.getMethod());
+        log.info("IP : " + request.getRemoteAddr());
+        log.info("CLASS_METHOD : " + joinPoint.getSignature().getDeclaringTypeName() + "."
+                + joinPoint.getSignature().getName());
+        log.info("ARGS : " + Arrays.toString(joinPoint.getArgs()));
+    }
+
+    @AfterReturning(returning = "res", pointcut = "webLog()")
+    public void doAfterReturning(Object res) throws JsonProcessingException {
+        //处理完请求，返回内容
+        log.info("RESPONSE : " + new ObjectMapper().writeValueAsString(res));
+    }
+}
+
+```
+重新启动，再次请求user接口
+![img.png](img/img11.png)
+
+
+## 1 用户模块
+
+![img_1.png](img/img12.png)
+
+![img_2.png](img/img13.png)
+
+
+
+### 1.1 接口文档
+
+#### 1.1.1 注册新用户
+
+| 注册新用户 |           |
+| ---------- | --------- |
+| 请求地址   | /register |
+| 请求方式   | POST      |
+
+| 参数     | 参数含义 |
+| -------- | -------- |
+| UserName | 用户名   |
+| password | 密码     |
+
+请求示例
+
+```
+/register?userName=onezos&password=12345678
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+#### 1.1.2 登录
+
+| 请求地址 | /login |
+| -------- | ------ |
+| 请求方式 | POST   |
+
+参数
+
+| 参数     | 参数含义 | 示例     | 备注 |
+| -------- | -------- | -------- | ---- |
+| userName | 用户名   | onezos   |      |
+| password | 密码     | 12345678 |      |
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "id": 9,
+    "username": "onezos",
+    "password": null,
+    "personalizedSignature": "祝你今天好心情",
+    "role": 2,
+    "createTime": "2022-04-27T12:39:47.000+0000",
+    "updateTime": "2022-04-27T16:56:02.000+0000"
+  }
+}
+```
+
+
+
+#### 1.1.3 更新个性签名 
+
+| 请求地址 | /user/update |
+| -------- | ------------ |
+| 请求方式 | POST         |
+
+参数
+
+| 参数      | 参数含义       | 示例           | 备注 |
+| --------- | -------------- | -------------- | ---- |
+| signature | 更新的签名内容 | 更新了我的签名 |      |
+
+请求示例
+
+```
+/user/update?signature=更新了我的签名
+```
+
+返回示例
+
+```
+{    "status": 10000,    "msg": "SUCCESS",    "data": null}
+```
+
+
+
+#### 1.1.4 退出登录
+
+| 请求地址 | /user/logout |
+| -------- | ------------ |
+| 请求方式 | POST         |
+
+参数
+
+| 参数 | 参数含义 | 示例 | 备注 |
+| ---- | -------- | ---- | ---- |
+| 无   |          |      |      |
+
+请求示例
+
+```
+/user/logout
+```
+
+返回示例
+
+```
+{    "status": 10000,    "msg": "SUCCESS",    "data": null}
+```
+
+
+
+#### 1.1.5 管理员登录
+
+| 请求地址 | /adminLogin |
+| -------- | ----------- |
+| 请求方式 | POST        |
+
+参数
+
+| 参数     | 参数含义 | 示例     | 备注 |
+| -------- | -------- | -------- | ---- |
+| userName | 用户名   | onezos   |      |
+| password | 密码     | 12345678 |      |
+
+请求示例
+
+```
+/adminLogin?userName=onezos&password=12345678
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "id": 9,
+    "username": "onezos",
+    "password": null,
+    "personalizedSignature": "祝你今天好心情",
+    "role": 2,
+    "createTime": "2022-04-26T12:39:47.000+0000",
+    "updateTime": "2022-04-27T16:56:02.000+0000"
+  }
+}
+```
+
+
+
+### 1.2 编写注册新用户
+
+#### 1.2.1 编写service
+
+注册新用户时，我们先插入两个字段，一个是用户名`userNmae`，一个是用户密码`password`，可以使用`mybatis-generator`自动生成的`insertSelective`的sql语句即可。
+
+插入新用户的逻辑是要先进行判断用户名是否存在，如果存在则提示，然后才能写入数据表中。
+
+```java
+package net.kokwind.mall.service;
+
+import net.kokwind.mall.exception.DdMallException;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.dao.UserMapper;
+import net.kokwind.mall.model.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    @Autowired
+    private UserMapper userMapper;
+
+    public User getUser(){
+        return userMapper.selectByPrimaryKey(1);
+    }
+
+    public void register(String userName, String password) throws DdMallException {
+        //查询用户名是否存在，不允许重名
+        User result = userMapper.selectByName(userName);
+        if(result != null){
+            throw new DdMallException(DdMallExceptionEnum.NAME_EXISTED);
+        }
+        //写到数据库
+        User user = new User();
+        user.setUsername(userName);
+        user.setPassword(password);
+        //只给选中的字段赋值用insertSelective，给每个字段赋值用insert
+        int count = userMapper.insertSelective(user);
+        if(count == 0){
+            throw new DdMallException(DdMallExceptionEnum.REGISTER_FAILED);
+        }
+    }
+}
+```
+
+#### 1.2.2 增加用用户名查询的mapper
+
+`UserMapper`增加`selectByName`
+
+```java
+package net.kokwind.mall.model.dao;
+
+import net.kokwind.mall.model.entity.User;
+import org.springframework.stereotype.Repository;
+@Repository
+public interface UserMapper {
+    int deleteByPrimaryKey(Integer id);
+
+    int insert(User row);
+
+    int insertSelective(User row);
+
+    User selectByPrimaryKey(Integer id);
+
+    int updateByPrimaryKeySelective(User row);
+
+    int updateByPrimaryKey(User row);
+
+    User selectByName(String userName);
+```
+
+`UserMapper.xml`增加`selectByName`
+
+```
+  <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from dd_mall_user
+    where username = #{userName,jdbcType=VARCHAR}
+  </select>
+```
+
+
+
+#### 1.2.3 编写统一异常
+
+抛出异常时，看到新建了`DdMallException`类和`DdMallExceptionEnum`枚举。
+
+代码如下
+
+`DdMallExceptionEnum`放常用的消息枚举
+
+```java
+package net.kokwind.mall.exception;
+
+public enum DdMallExceptionEnum {
+    NEED_USER_NAME(10001, "用户名不能为空"),
+    NEED_PASSWORD(10002, "密码不能为空"),
+    PASSWORD_TOO_SHORT(10003, "密码长度不能小于8位"),
+    NAME_EXISTED(10004, "用户名已存在"),
+    REGISTER_FAILED(10005, "创建失败,请稍后重试");
+    Integer code;
+    String message;
+
+    DdMallExceptionEnum(Integer code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+}
+```
+
+`DdMallException`统一的异常调用
+
+```java
+package net.kokwind.mall.exception;
+
+/**
+ * 描述： 统一异常
+ */
+public class DdMallException extends Exception {
+    private final Integer code;
+    private final String message;
+
+    public DdMallException(Integer code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public DdMallException(DdMallExceptionEnum exceptionEnum) {
+        this(exceptionEnum.getCode(), exceptionEnum.getMessage());
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+}
+```
+
+#### 1.2.4 编写通用的统一返回类
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+新建类·
+
+```java
+package net.kokwind.mall.common;
+
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+
+public class ApiRestResponse<T> {
+    private Integer status;
+    private String message;
+    private T data;
+
+    private static final int OK_CODE = 10000;
+    private static final String OK_MSG = "SUCCESS";
+
+    public ApiRestResponse(Integer status, String message, T data) {
+        this.status = status;
+        this.message = message;
+        this.data = data;
+    }
+
+    public ApiRestResponse(Integer status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public ApiRestResponse() {
+        this(OK_CODE, OK_MSG);
+    }
+
+    public static <T> ApiRestResponse<T> success() {
+        return new ApiRestResponse<>();
+    }
+
+    public static <T> ApiRestResponse<T> success(T result) {
+
+        ApiRestResponse<T> response = new ApiRestResponse<>();
+        response.setData(result);
+        return response;
+    }
+
+    public static <T> ApiRestResponse<T> error(Integer code, String msg) {
+        return new ApiRestResponse<>(code,msg);
+    }
+
+    public static <T> ApiRestResponse<T> error(DdMallExceptionEnum ex) {
+        return new ApiRestResponse<>(ex.getCode(), ex.getMessage());
+    }
+
+    @Override
+    public String toString() {
+        return "ApiRestResponse{" +
+                "status=" + status +
+                ", message='" + message + '\'' +
+                ", data=" + data +
+                '}';
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+}
+```
+
+#### 1.2.5 编写注册接口controller
+
+传入`userName`和`password`，并对其进行基础判断。
+
+```java
+package net.kokwind.mall.controller;
+
+import net.kokwind.mall.common.ApiRestResponse;
+import net.kokwind.mall.exception.DdMallException;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.entity.User;
+import net.kokwind.mall.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class UserController {
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/user")
+    public User getUser() {
+        return userService.getUser();
+    }
+
+    @PostMapping("/register")
+    public ApiRestResponse register(@RequestParam("userName") String userName,
+                                    @RequestParam("password") String password) throws DdMallException {
+        if(ObjectUtils.isEmpty(userName)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_USER_NAME);
+        }
+        if(ObjectUtils.isEmpty(password)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_PASSWORD);
+        }
+        if(password.length()<8) {
+            return ApiRestResponse.error(DdMallExceptionEnum.PASSWORD_TOO_SHORT);
+        }
+        userService.register(userName, password);
+        return ApiRestResponse.success();
+    }
+}
+```
+
+#### 1.2.6 启动测试
+
+![img_3.png](img/img14.png)
+
+![img_6.png](img/img17.png)
+
+![img_4.png](img/img15.png)
+
+![img_5.png](img/img16.png)
+
+![img_7.png](img/img18.png)
+
+![img_8.png](img/img19.png)
+
+#### 1.2.7 对异常进行拦截统一处理
+
+最后一次抛出异常的信息跟之前的不一样。这种并不是我之前想要的结果，所以要对异常进行统一处理，出于对前端结构统一和安全考虑。
+
+```java
+package net.kokwind.mall.exception;
+
+import ch.qos.logback.classic.Logger;
+import net.kokwind.mall.common.ApiRestResponse;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    private final Logger logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    //处理Exception异常
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public Object handleException(Exception e) {
+        logger.error("Default Exception", e);
+        return ApiRestResponse.error(DdMallExceptionEnum.SYSTEM_ERROR);
+    }
+    //处理DdMallException异常
+    @ExceptionHandler(DdMallException.class)
+    @ResponseBody
+    public Object handleDdMallException(DdMallException e) {
+        logger.error("DdMallException Exception", e);
+        return ApiRestResponse.error(e.getCode(), e.getMessage());
+    }
+}
+
+```
+再次启动
+
+![img_9.png](img/img20.png)
+
+#### 1.2.8 java的异常体系
+
+![img_10.png](img/img21.png)
+
+对于`Error`我们会遇到，但是不需要处理的，重点是在处理`IOException`
+
+- Error：是java运行时系统的内部错误或者资源耗尽，一旦发生这样的情况，除了java会告诉我们这些，它并没有什么能力来帮助我们处理它。
+- Exception
+  - `RuntimeException`一旦发生就是我们程序员的问题。这种异常是编译器无法事先报错的，是需要我们进行check。
+  - `IOException`这种是受检查异常，编译器是可以提示我们的，我们可以及时的进行处理。
+
+
+
+#### 1.2.9 对密码进行MD5加密
+进入用户表可以看到目前密码是明文保存的，为了安全，我们需要对密码进行加密。
+先删除掉用户`kokwind`
+![img_11.png](img/img22.png)
+
+```java
+package net.kokwind.mall.util;
+
+
+import net.kokwind.mall.common.Constant;
+import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.util.DigestUtils;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ * 描述：   MD5工具
+ */
+public class MD5Utils {
+    public static String getMD5Str(String str) throws NoSuchAlgorithmException {
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        //对原始字符串+盐值进行MD5加密，然后再进行base64编码，盐值保存在Constant类中。
+        return Base64.encodeBase64String(md5.digest((str + Constant.SALT).getBytes()));
+    }
+
+    public static void main(String[] args) {
+        String md5 = null;
+        try {
+            md5 = getMD5Str("123456");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(md5);
+
+    }
+}
+```
+
+```java
+package net.kokwind.mall.common;
+
+/**
+ * 描述： 存放常量值
+ */
+public class Constant {
+    public static final String SALT = "KOKWIND";
+}
+```
+
+修改service
+```java
+package net.kokwind.mall.service;
+
+import net.kokwind.mall.exception.DdMallException;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.dao.UserMapper;
+import net.kokwind.mall.model.entity.User;
+import net.kokwind.mall.util.MD5Utils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.security.NoSuchAlgorithmException;
+
+@Service
+public class UserService {
+    @Autowired
+    private UserMapper userMapper;
+
+    public User getUser(){
+        return userMapper.selectByPrimaryKey(1);
+    }
+
+    public void register(String userName, String password) throws DdMallException {
+        //查询用户名是否存在，不允许重名
+        User result = userMapper.selectByName(userName);
+        if(result != null){
+            throw new DdMallException(DdMallExceptionEnum.NAME_EXISTED);
+        }
+        //写到数据库
+        User user = new User();
+        user.setUsername(userName);
+        //user.setPassword(password);
+        try {
+            user.setPassword(MD5Utils.getMD5Str(password));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        //只给选中的字段赋值用insertSelective，给每个字段赋值用insert
+        int count = userMapper.insertSelective(user);
+        if(count == 0){
+            throw new DdMallException(DdMallExceptionEnum.REGISTER_FAILED);
+        }
+    }
+}
+```
+重启测试
+
+![img_12.png](img/img23.png)
+
+![img_13.png](img/img24.png)
+
+
+
+### 1.3 编写登录功能
+
+- 登录状态需要保持
+- session的实现方案：登陆后，会保存用户信息到session
+- 之后的访问，会先从session中获取用户信息，然后再执行业务逻辑
+
+在UserService里添加`login`方法
+
+```
+    public User login(String userName, String password) throws DdMallException {
+        String md5Password = null;
+        try {
+            md5Password = MD5Utils.getMD5Str(password);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        User user = userMapper.selectLogin(userName, md5Password);
+        if(user == null){
+            throw new DdMallException(DdMallExceptionEnum.WRONG_PASSWORD);
+        }
+        return user;
+    }
+```
+
+对应的在UserController里添加`login`方法, 把登录User信息存入session
+```
+    @PostMapping("/login")
+    public ApiRestResponse login(@RequestParam("userName") String userName,
+                                 @RequestParam("password") String password,
+                                 HttpSession session) throws DdMallException {
+        if(ObjectUtils.isEmpty(userName)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_USER_NAME);
+        }
+        if(ObjectUtils.isEmpty(password)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_PASSWORD);
+        }
+        User user = userService.login(userName, password);
+        //保存用户信息时，不保存密码
+        user.setPassword(null);
+        session.setAttribute(Constant.DD_MALL_USER, user);
+        return ApiRestResponse.success(user);
+    }
+```
+
+![img_1.png](img/img26.png)
+
+
+### 1.4 编写用户更新功能
+
+在UserService里添加`updateUserInfo`方法
+```
+    public void updateUserInfo(User user) throws DdMallException {
+        int updateCount = userMapper.updateByPrimaryKeySelective(user);
+        if(updateCount > 1){
+            throw new DdMallException(DdMallExceptionEnum.UPDATE_FAILED);
+        }
+    }
+```
+对应的在UserController里添加`updateUserInfo`方法, 把登录User信息从session中取出，然后更新数据库
+```
+    @PostMapping("/user/update")
+    public ApiRestResponse updateUserInfo(HttpSession session,
+                                          @RequestParam String signature) throws DdMallException {
+        User currentUser = (User) session.getAttribute(Constant.DD_MALL_USER);
+        if(ObjectUtils.isEmpty(currentUser)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_LOGIN);
+        }
+        User user = new User();
+        user.setPersonalizedSignature(signature);
+        user.setId(currentUser.getId());
+        userService.updateUserInfo(user);
+        return ApiRestResponse.success();
+    }
+```
+
+![img_2.png](img/img27.png)
+
+![img.png](img/img25.png)
