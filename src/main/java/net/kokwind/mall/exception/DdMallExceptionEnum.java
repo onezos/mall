@@ -9,6 +9,7 @@ public enum DdMallExceptionEnum {
     WRONG_PASSWORD(10006, "密码错误"),
     NEED_LOGIN(10007, "用户未登录"),
     UPDATE_FAILED(10008, "更新失败,请稍后重试"),
+    NEED_ADMIN_ROLE(10009, "需要管理员权限"),
     SYSTEM_ERROR(20000, "系统异常");
     Integer code;
     String message;

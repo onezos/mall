@@ -1238,7 +1238,7 @@ public class UserService {
 
 在UserService里添加`login`方法
 
-```
+```java
     public User login(String userName, String password) throws DdMallException {
         String md5Password = null;
         try {
@@ -1255,7 +1255,7 @@ public class UserService {
 ```
 
 对应的在UserController里添加`login`方法, 把登录User信息存入session
-```
+```java
     @PostMapping("/login")
     public ApiRestResponse login(@RequestParam("userName") String userName,
                                  @RequestParam("password") String password,
@@ -1280,7 +1280,7 @@ public class UserService {
 ### 1.4 编写用户更新功能
 
 在UserService里添加`updateUserInfo`方法
-```
+```java
     public void updateUserInfo(User user) throws DdMallException {
         int updateCount = userMapper.updateByPrimaryKeySelective(user);
         if(updateCount > 1){
@@ -1289,7 +1289,7 @@ public class UserService {
     }
 ```
 对应的在UserController里添加`updateUserInfo`方法, 把登录User信息从session中取出，然后更新数据库
-```
+```java
     @PostMapping("/user/update")
     public ApiRestResponse updateUserInfo(HttpSession session,
                                           @RequestParam String signature) throws DdMallException {
@@ -1308,3 +1308,55 @@ public class UserService {
 ![img_2.png](img/img27.png)
 
 ![img.png](img/img25.png)
+
+### 1.5 编写用户退出功能
+
+```java
+    //用户登出接口
+    @PostMapping("/user/logout")
+    public ApiRestResponse logout(HttpSession session){
+        session.removeAttribute(Constant.DD_MALL_USER);
+        return ApiRestResponse.success();
+    }
+```
+启动测试
+
+![img.png](img/img28.png)
+
+### 1.6 编写管理员接口
+在`controller`中增加`adminLogin`方法
+```java
+    //管理员接口
+    @PostMapping("/admin/login")
+    public ApiRestResponse adminLogin(@RequestParam("userName") String userName,
+                                 @RequestParam("password") String password,
+                                 HttpSession session) throws DdMallException {
+        if(ObjectUtils.isEmpty(userName)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_USER_NAME);
+        }
+        if(ObjectUtils.isEmpty(password)) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_PASSWORD);
+        }
+        User user = userService.login(userName, password);
+        //校验是否是管理员
+        if (userService.checkAdminRole(user)) {
+            user.setPassword(null);
+            session.setAttribute(Constant.DD_MALL_USER, user);
+            return ApiRestResponse.success(user);
+        }else {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_ADMIN_ROLE);
+        }
+    }
+```
+在`service`中增加`checkAdminRole`方法
+```java
+    //检查是否是管理员服务
+    public boolean checkAdminRole(User user) {
+        //1是普通用户，2是管理员
+        return user.getRole().equals(2);
+    }
+```
+
+启动测试
+
+![img_1.png](img/img29.png)

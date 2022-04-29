@@ -1,4 +1,7 @@
 package net.kokwind.mall.service;
+/**
+ * 用户服务
+ */
 
 import net.kokwind.mall.exception.DdMallException;
 import net.kokwind.mall.exception.DdMallExceptionEnum;
@@ -16,11 +19,19 @@ import java.security.NoSuchAlgorithmException;
 public class UserService {
     @Autowired
     private UserMapper userMapper;
-
+    /**
+     * 测试服务
+     */
     public User getUser(){
         return userMapper.selectByPrimaryKey(1);
     }
 
+    /**
+     * 用户注册服务
+     * @param userName
+     * @param password
+     * @throws DdMallException
+     */
     public void register(String userName, String password) throws DdMallException {
         //查询用户名是否存在，不允许重名
         User result = userMapper.selectByName(userName);
@@ -43,6 +54,13 @@ public class UserService {
         }
     }
 
+    /**
+     * 用户登录服务
+     * @param userName
+     * @param password
+     * @return 返回用户数据
+     * @throws DdMallException
+     */
     public User login(String userName, String password) throws DdMallException {
         String md5Password = null;
         try {
@@ -57,10 +75,25 @@ public class UserService {
         return user;
     }
 
+    /**
+     * 用户更新服务
+     * @param user
+     * @throws DdMallException
+     */
     public void updateUserInfo(User user) throws DdMallException {
         int updateCount = userMapper.updateByPrimaryKeySelective(user);
         if(updateCount > 1){
             throw new DdMallException(DdMallExceptionEnum.UPDATE_FAILED);
         }
+    }
+
+    /**
+     * 检查是否管理员服务
+     * @param user
+     * @return true表示是管理员，false表示不是管理员
+     */
+    public boolean checkAdminRole(User user) {
+        //1是普通用户，2是管理员
+        return user.getRole().equals(2);
     }
 }
