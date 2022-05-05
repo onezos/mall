@@ -1360,3 +1360,751 @@ public class UserService {
 启动测试
 
 ![img_1.png](img/img29.png)
+
+
+
+## 2 商品分类模块
+
+### 2.1 接口文档
+
+#### 2.1.1 后台管理：
+
+##### 2.1.1.1 增加目录分类
+
+| 请求地址 | /admin/category/add |
+| -------- | ------------------- |
+| 请求方式 | POST                |
+
+参数
+
+| 参数     | 参数含义   | 示例     | 备注                 |
+| -------- | ---------- | -------- | -------------------- |
+| name     | 目录名     | 新鲜水果 |                      |
+| type     | 目录层级   | 1        | 不超过3级            |
+| parentId | 父目录的ID | 2        | 1级目录的parentId为0 |
+| orderNum | 排序       | 5        | 同级目录的排序       |
+
+请求示例
+
+```
+/admin/category/add
+```
+
+body：
+
+```
+{"name":"食品","type":1,"parentId":0,"orderNum":1}
+```
+
+返回示例
+
+```
+{
+
+  "status": 10000,
+
+  "msg": "SUCCESS",
+
+  "data": null
+
+}
+```
+
+
+
+##### 2.1.1.2 更新目录分类
+
+| 请求地址 | /admin/category/update |
+| -------- | ---------------------- |
+| 请求方式 | POST                   |
+
+参数
+
+| 参数     | 参数含义   | 示例     | 备注                 |
+| -------- | ---------- | -------- | -------------------- |
+| id       | 目录的id   | 4        |                      |
+| name     | 目录名     | 新鲜水果 |                      |
+| type     | 目录层级   | 1        | 不超过3级            |
+| parentId | 父目录的ID | 2        | 1级目录的parentId为0 |
+| orderNum | 排序       | 5        | 同级目录的排序       |
+
+请求示例
+
+```
+/admin/category/update
+```
+
+body：
+
+```
+{"id":"1","name":"食品品品品","type":1,"parentId":0,"orderNum":1}
+```
+
+返回示例
+
+```
+{
+
+  "status": 10000,
+
+  "msg": "SUCCESS",
+
+  "data": null
+
+}
+```
+
+
+
+##### 2.2.1.3 删除分类
+
+| 请求地址 | /admin/category/delete |
+| -------- | ---------------------- |
+| 请求方式 | POST                   |
+
+参数
+
+| 参数 | 参数含义 | 示例 | 备注 |
+| ---- | -------- | ---- | ---- |
+| id   | 目录的id | 4    |      |
+
+请求示例
+
+```
+/admin/category/delete?id=1
+```
+
+返回示例
+
+```
+{
+
+  "status": 10000,
+
+  "msg": "SUCCESS",
+
+  "data": null
+
+}
+```
+
+
+
+##### 2.1.1.4 分类列表（平铺） 
+
+| 请求地址 | /admin/category/list?pageNum=1&pageSize=10 |
+| -------- | ------------------------------------------ |
+| 请求方式 | GET                                        |
+
+参数
+
+| 参数     | 参数含义 | 示例 | 备注 |
+| -------- | -------- | ---- | ---- |
+| pageNum  | 页数     | 1    |      |
+| pageSize | 每页条数 | 10   |      |
+
+请求示例
+
+```
+/admin/category/list?pageNum=1&pageSize=10
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "total": 19,
+    "list": [
+      {
+        "id": 3,
+        "name": "新鲜水果",
+        "type": 1,
+        "parentId": 0,
+        "orderNum": 1,
+        "createTime": "2019-12-17T17:17:00.000+0000",
+        "updateTime": "2019-12-28T09:11:26.000+0000"
+      }]
+}
+```
+
+#### 2.1.2 前台：分类列表（递归） 
+
+| 参数 | 参数含义 | 示例 | 备注 |
+| ---- | -------- | ---- | ---- |
+| 无   |          |      |      |
+
+请求示例
+
+```
+/category/list
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": [
+    {
+      "id": 3,
+      "name": "新鲜水果",
+      "type": 1,
+      "parentId": 0,
+      "orderNum": 1,
+      "childCategory": [
+        {
+          "id": 4,
+          "name": "橘子橙子",
+          "type": 2,
+          "parentId": 3,
+          "orderNum": 1,
+          "childCategory": [
+            {
+              "id": 19,
+              "name": "果冻橙",
+              "type": 3,
+              "parentId": 4,
+              "orderNum": 1,
+              "childCategory": []
+            }
+          ]
+      }
+  ]
+}
+```
+
+
+
+### 2.2 表设计
+
+
+
+![img.png](img/img30.png)
+
+
+
+### 2.3 编写商品分类模块
+
+#### 2.3.1 dao中增加selectByName
+
+```java
+package net.kokwind.mall.model.dao;
+
+import net.kokwind.mall.model.entity.Category;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface CategoryMapper {
+    int deleteByPrimaryKey(Integer id);
+
+    int insert(Category row);
+
+    int insertSelective(Category row);
+
+    Category selectByPrimaryKey(Integer id);
+
+    int updateByPrimaryKeySelective(Category row);
+
+    int updateByPrimaryKey(Category row);
+
+    Category selectByName(String name);
+}
+```
+
+#### 2.3.2 Mapper中增加selectByName
+
+```xml
+  <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from dd_mall_category
+    where name = #{name,jdbcType=VARCHAR}
+  </select>
+```
+
+#### 2.3.3 新建请求的参数类AddCategoryReq
+
+@Size等注解参见2.3.5.1
+
+```java
+package net.kokwind.mall.model.request;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+/**
+ * 描述:
+ */
+public class AddCategoryReq {
+    @Size(min = 2,max = 5)
+    @NotNull(message = "name不能为null")
+    private String name;
+
+    @NotNull(message = "type不能为null")
+    @Max(3)
+    private Integer type;
+    @NotNull(message = "parentId不能为null")
+    private Integer parentId;
+    @NotNull(message = "orderNum不能为null")
+    private Integer orderNum;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+
+    public Integer getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
+    }
+}
+```
+
+#### 2.3.4 新建请求的服务
+
+```java
+package net.kokwind.mall.service;
+
+import net.kokwind.mall.exception.DdMallException;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.dao.CategoryMapper;
+import net.kokwind.mall.model.entity.Category;
+import net.kokwind.mall.model.request.AddCategoryReq;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * 描述: 商品分类服务
+ */
+@Service
+public class CategoryService {
+    @Autowired
+    CategoryMapper categoryMapper;
+
+    public void add(AddCategoryReq addCategoryReq) {
+        Category category = new Category();
+        BeanUtils.copyProperties(addCategoryReq, category);
+        Category oldCategory = categoryMapper.selectByName(addCategoryReq.getName());
+        if(oldCategory != null) {
+            throw new DdMallException(DdMallExceptionEnum.NAME_EXISTED);
+        }
+        int count = categoryMapper.insertSelective(category);
+        if(count == 0) {
+            throw new DdMallException(DdMallExceptionEnum.CREATE_FAILED);
+        }
+    }
+}
+```
+
+#### 2.3.5 新建请求的控制器
+
+##### 2.3.5.1 @Valid校验
+
+在平常通过 Spring 框架写代码时候，会经常写接口类，相信大家对该类的写法非常熟悉。在写接口时经常要写效验请求参数逻辑，这时候我们会常用做法是写大量的 if 与 if else 类似这样的代码来做判断
+
+```
+        if(addCategoryReq.getName() == null || addCategoryReq.getName()== null ||
+        addCategoryReq.getOrderNum() ==null || addCategoryReq.getParentId() == null){
+            return ApiRestResponse.error(DdMallExceptionEnum.NAME_NOT_NULL);
+        }
+```
+
+使用@Valid 参数校验
+
+注解 @Valid 的主要作用是用于数据效验，可以在定义的实体中的属性上，添加不同的注解来完成不同的校验规则，而在接口类中的接收数据参数中添加 @valid 注解，这时你的实体将会开启一个校验的功能。
+
+首先添加依赖
+
+```
+		<!-- Valid依赖 -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+```
+
+
+
+| 参数           | 说明               |
+| -------------- | ------------------ |
+| @Valid         | 需要验证           |
+| @NotNull       | 非空               |
+| @Max(value)    | 最大值             |
+| @Size(max,min) | 字符串长度范围限制 |
+
+请求示例
+
+```java
+package net.kokwind.mall.controller;
+
+import net.kokwind.mall.common.ApiRestResponse;
+import net.kokwind.mall.common.Constant;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.entity.User;
+import net.kokwind.mall.model.request.AddCategoryReq;
+import net.kokwind.mall.service.CategoryService;
+import net.kokwind.mall.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+
+/**
+ * 描述：目录Controller
+ */
+@RestController
+public class CategoryController {
+    @Autowired
+    UserService userService;
+    @Autowired
+    CategoryService categoryService;
+
+    @PostMapping("admin/categoty/add")
+    public ApiRestResponse addCategory(HttpSession session,
+                                       @Valid @RequestBody  AddCategoryReq addCategoryReq) {
+        //判断是否登录
+        User currentUser = (User) session.getAttribute(Constant.DD_MALL_USER);
+        if (currentUser == null) {
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_LOGIN);
+        }
+        //校验是否是管理员
+        boolean adminRole = userService.checkAdminRole(currentUser);
+        if(adminRole){
+            categoryService.add(addCategoryReq);
+            return ApiRestResponse.success();
+        }else{
+            return ApiRestResponse.error(DdMallExceptionEnum.NEED_ADMIN_ROLE);
+        }
+    }
+}
+```
+
+##### 2.3.5.2 增加统一异常处理方法
+
+```java
+package net.kokwind.mall.exception;
+
+import ch.qos.logback.classic.Logger;
+import net.kokwind.mall.common.ApiRestResponse;
+import org.slf4j.LoggerFactory;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    private final Logger logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    //处理Exception异常
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public Object handleException(Exception e) {
+        logger.error("Default Exception", e);
+        return ApiRestResponse.error(DdMallExceptionEnum.SYSTEM_ERROR);
+    }
+    //处理DdMallException异常
+    @ExceptionHandler(DdMallException.class)
+    @ResponseBody
+    public Object handleDdMallException(DdMallException e) {
+        logger.error("DdMallException Exception", e);
+        return ApiRestResponse.error(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ApiRestResponse handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
+        logger.error("MethodArgumentNotValidException: ", e);
+        return handleBindingResult(e.getBindingResult());
+    }
+
+    private ApiRestResponse handleBindingResult(BindingResult result) {
+        //把异常处理为对外暴露的提示
+        List<String> list = new ArrayList<>();
+        if (result.hasErrors()) {
+            List<ObjectError> allErrors = result.getAllErrors();
+            for (ObjectError objectError : allErrors) {
+                String message = objectError.getDefaultMessage();
+                list.add(message);
+            }
+        }
+        if (list.size() == 0) {
+            return ApiRestResponse.error(DdMallExceptionEnum.REQUEST_PARAM_ERROR);
+        }
+        return ApiRestResponse
+                .error(DdMallExceptionEnum.REQUEST_PARAM_ERROR.getCode(), list.toString());
+    }
+}
+```
+
+
+
+#### 2.4 使用swagger编写API文档
+
+引入依赖
+
+```
+        <!-- 自动生成API文档依赖 -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+```
+
+启动类加注解@EnableSwagger2
+
+```java
+package net.kokwind.mall;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@SpringBootApplication
+@MapperScan("net.kokwind.mall.model.dao")
+@EnableSwagger2
+public class MallApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MallApplication.class, args);
+    }
+}
+```
+
+编写配置类
+
+```java
+package net.kokwind.mall.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * 描述：     配置地址映射
+ */
+@Configuration
+@EnableWebMvc
+public class DdMallWebMvcConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/statics/**").addResourceLocations("classpath:/statics/");
+        // 解决 SWAGGER2 404报错
+        registry.addResourceHandler("/swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+}
+```
+
+```java
+package net.kokwind.mall.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+
+@Configuration
+public class SpringFoxConfig {
+
+    //访问http://localhost:8080/swagger-ui.html可以看到API文档
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.any())
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("DD生鲜")
+                .description("")
+                .termsOfServiceUrl("")
+                .build();
+    }
+}
+```
+
+启动
+
+![img_1.png](img/img31.png)
+
+
+
+#### 2.5 编写未登录和管理员检查过滤器
+
+新建过滤器配置
+
+```java
+package net.kokwind.mall.config;
+
+import net.kokwind.mall.filter.AdminFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * 描述：     Admin过滤器的配置
+ */
+@Configuration
+public class AdminFilterConfig {
+
+    @Bean
+    public AdminFilter adminFilter() {
+        return new AdminFilter();
+    }
+
+    @Bean(name = "adminFilterConf")
+    public FilterRegistrationBean adminFilterConfig() {
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        filterRegistrationBean.setFilter(adminFilter());
+        filterRegistrationBean.addUrlPatterns("/admin/category/*");
+        filterRegistrationBean.addUrlPatterns("/admin/product/*");
+        filterRegistrationBean.addUrlPatterns("/admin/order/*");
+        filterRegistrationBean.setName("adminFilterConf");
+        return filterRegistrationBean;
+    }
+}
+```
+
+新建过滤器规则
+
+```java
+package net.kokwind.mall.filter;
+
+/**
+ * 描述：管理员校验过滤器
+ */
+
+import net.kokwind.mall.common.ApiRestResponse;
+import net.kokwind.mall.common.Constant;
+import net.kokwind.mall.exception.DdMallExceptionEnum;
+import net.kokwind.mall.model.entity.User;
+import net.kokwind.mall.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+public class AdminFilter implements Filter {
+    @Autowired
+    UserService userService;
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        HttpSession session = request.getSession();
+        //判断是否登录
+        User currentUser = (User) session.getAttribute(Constant.DD_MALL_USER);
+        if (currentUser == null) {
+            PrintWriter out = new HttpServletResponseWrapper(
+                    (HttpServletResponse) servletResponse).getWriter();
+            out.write("{\n"
+                    + "    \"status\": 10007,\n"
+                    + "    \"msg\": \"NEED_LOGIN\",\n"
+                    + "    \"data\": null\n"
+                    + "}");
+            out.flush();
+            out.close();
+            return;
+        }
+        //校验是否是管理员
+        boolean adminRole = userService.checkAdminRole(currentUser);
+        if (adminRole) {
+            filterChain.doFilter(servletRequest, servletResponse);
+        } else {
+            PrintWriter out = new HttpServletResponseWrapper(
+                    (HttpServletResponse) servletResponse).getWriter();
+            out.write("{\n"
+                    + "    \"status\": 10009,\n"
+                    + "    \"msg\": \"NEED_ADMIN\",\n"
+                    + "    \"data\": null\n"
+                    + "}");
+            out.flush();
+            out.close();
+        }
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        Filter.super.init(filterConfig);
+    }
+
+    @Override
+    public void destroy() {
+        Filter.super.destroy();
+    }
+}
+```
+

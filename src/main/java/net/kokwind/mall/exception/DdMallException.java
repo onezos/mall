@@ -3,7 +3,7 @@ package net.kokwind.mall.exception;
 /**
  * 描述： 统一异常
  */
-public class DdMallException extends Exception {
+public class DdMallException extends RuntimeException {
     private final Integer code;
     private final String message;
 
