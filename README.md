@@ -2108,3 +2108,317 @@ public class AdminFilter implements Filter {
 }
 ```
 
+
+
+#### 2.6 添加分页
+
+首先添加依赖，注意`springboot pagehelper`插件启动报错 `com.github.pagehelper.autoconfigure.PageHelperAutoConfiguration`
+
+降低`springboot`版本到2.5.x
+
+```
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.5</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+```
+
+
+
+```
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.2.13</version>
+        </dependency>
+```
+
+多层递归分类列表
+
+```java
+package net.kokwind.mall.model.vo;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class CategoryVO implements Serializable {
+    private Integer id;
+
+    private String name;
+
+    private Integer type;
+
+    private Integer parentId;
+
+    private Integer orderNum;
+
+    private Date createTime;
+
+    private Date updateTime;
+
+    private List<CategoryVO> childCategory = new ArrayList<>();
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+
+    public Integer getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public List<CategoryVO> getChildCategory() {
+        return childCategory;
+    }
+
+    public void setChildCategory(List<CategoryVO> childCategory) {
+        this.childCategory = childCategory;
+    }
+}
+```
+
+Mapper中增加
+
+```
+  <select id="selectList" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from dd_mall_category
+  </select>
+  <select id="selectCategoriesByParentId" resultMap="BaseResultMap" parameterType="int">
+    select
+    <include refid="Base_Column_List"/>
+    from dd_mall_category
+    where parent_id = #{parentId}
+  </select>
+```
+
+Dao中增加
+
+```
+    List<Category> selectList();
+
+    List<Category> selectCategoriesByParentId(Integer parentId);
+```
+
+CategoryService中增加管理员列表和用户列表
+
+```java
+    public List<CategoryVO> listCategoryForCustomer(Integer parentId) {
+        ArrayList<CategoryVO> categoryVOList = new ArrayList<>();
+        recursivelyFindCategories(categoryVOList, parentId);
+        return categoryVOList;
+    }
+
+    private void recursivelyFindCategories(List<CategoryVO> categoryVOList, Integer parentId) {
+        //递归获取所有子类别，并组合成为一个“目录树”
+        List<Category> categoryList = categoryMapper.selectCategoriesByParentId(parentId);
+        if (!CollectionUtils.isEmpty(categoryList)) {
+            for (int i = 0; i < categoryList.size(); i++) {
+                Category category = categoryList.get(i);
+                CategoryVO categoryVO = new CategoryVO();
+                BeanUtils.copyProperties(category, categoryVO);
+                categoryVOList.add(categoryVO);
+                recursivelyFindCategories(categoryVO.getChildCategory(), categoryVO.getId());
+            }
+        }
+    }
+```
+
+CategoryController中增加
+
+```java
+    @ApiOperation("后台目录列表")
+    @GetMapping("admin/category/list")
+    public ApiRestResponse listCategoryForAdmin(@RequestParam Integer pageNum,@RequestParam Integer pageSize) {
+        PageInfo pageInfo = categoryService.listForAdmin(pageNum, pageSize);
+        return ApiRestResponse.success(pageInfo);
+    }
+    @ApiOperation("前台目录列表")
+    @GetMapping("category/list")
+    public ApiRestResponse listCategoryForCustomer() {
+        List<CategoryVO> categoryVOS = categoryService.listCategoryForCustomer(0);
+        return ApiRestResponse.success(categoryVOS);
+    }
+```
+
+#### 2.7 使用本地redis缓存
+
+##### 2.7.1 首先添加依赖
+
+```xml
+        <!-- redis缓存  -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+```
+
+##### 2.7.2 本机安装redis
+
+[Release 3.0.504 · microsoftarchive/redis (github.com)](https://github.com/microsoftarchive/redis/releases/tag/win-3.0.504)
+
+正常安装勾选设置环境变量
+
+测试是否成功，如下：
+
+```
+C:\Users\gdd93>redis-cli
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379>
+```
+
+##### 2.7.3 添加配置
+
+**application.properties**
+
+```
+spring.redis.host=localhost
+spring.redis.port=6379
+spring.redis.password=
+```
+
+##### 2.7.4 启动类加注解@EnableCaching
+
+```java
+package net.kokwind.mall;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+@SpringBootApplication
+@MapperScan("net.kokwind.mall.model.dao")
+@EnableSwagger2
+@EnableCaching
+public class MallApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MallApplication.class, args);
+    }
+}
+```
+
+##### 2.7.5 在哪个方法上使用cache
+
+```java
+    @Cacheable(value = "listCategoryForCustomer")
+    public List<CategoryVO> listCategoryForCustomer(Integer parentId) {
+        ArrayList<CategoryVO> categoryVOList = new ArrayList<>();
+        recursivelyFindCategories(categoryVOList, parentId);
+        return categoryVOList;
+    }
+```
+
+##### 2.7.6 创建缓存的配置类
+
+```java
+package net.kokwind.mall.config;
+
+import java.time.Duration;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.cache.RedisCacheWriter;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+
+/**
+ * 描述：     缓存的配置类
+ */
+@Configuration
+@EnableCaching
+public class CachingConfig {
+
+    @Bean
+    public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
+
+        RedisCacheWriter redisCacheWriter = RedisCacheWriter
+                .lockingRedisCacheWriter(connectionFactory);
+        RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig();
+        cacheConfiguration = cacheConfiguration.entryTtl(Duration.ofSeconds(30));
+
+        RedisCacheManager redisCacheManager = new RedisCacheManager(redisCacheWriter,
+                cacheConfiguration);
+        return redisCacheManager;
+    }
+}
+```
+
+#### 2.4 测试
+
+![img.png](img/img32.png)
+
+![img_1.png](img/img33.png)
+
+![img_2.png](img/img34.png)
+
+![img_3.png](img/img35.png)
+
+![img_4.png](img/img36.png)
+
+![img_5.png](img/img37.png)
+
+![img_6.png](img/img38.png)
+
+
+
+
