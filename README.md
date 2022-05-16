@@ -2421,4 +2421,492 @@ public class CachingConfig {
 
 
 
+### 3 商品模块
 
+#### 3.1 后台管理：
+
+##### 3.1.1 增加商品
+
+| 请求地址 | /admin/product/add |
+| -------- | ------------------ |
+| 请求方式 | POST               |
+
+参数
+
+| 参数       | 参数含义 | 示例                                                         | 备注     |
+| ---------- | -------- | ------------------------------------------------------------ | -------- |
+| name       | 商品名称 | 猕猴桃                                                       |          |
+| categoryId | 目录ID   | 5                                                            |          |
+| price      | 价格     | 1000                                                         | 单位是分 |
+| stock      | 库存     | 10                                                           |          |
+| detail     | 商品描述 | 新西兰黄心，黄金奇异果                                       |          |
+| image      | 商品图片 | http://127.0.0.1:8083/images/6037baf8-5251-4560-be5a-32b8ee3823cf.png |          |
+
+请求示例
+
+```
+/admin/product/add
+```
+
+body：
+
+```
+{"name":"猕猴桃","categoryId":5,"price":1000,"stock":10,"status":1,"detail":"新西兰黄心，黄金奇异果","image":"http://127.0.0.1:8083/images/6037baf8-5251-4560-be5a-32b8ee3823cf.png"}
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+##### 3.1.2 上传图片
+
+| 请求地址 | /admin/upload/file |
+| -------- | ------------------ |
+| 请求方式 | POST               |
+
+参数：
+
+body 的类型是 form-data，key 是 file，value 是里传 file 类型的文件：
+
+返回:
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": "http://127.0.0.1:8082/upload/b899f512-3467-4c71-8d2d-2d491b21f429.png"
+}
+```
+
+##### 3.1.3 更新商品
+
+| 请求地址 | /admin/product/update |
+| -------- | --------------------- |
+| 请求方式 | POST                  |
+
+参数
+
+| 参数       | 参数含义 | 示例                                                         | 备注     |
+| ---------- | -------- | ------------------------------------------------------------ | -------- |
+| id         | 商品ID   | 1                                                            |          |
+| name       | 商品名称 | 猕猴桃                                                       |          |
+| categoryId | 目录ID   | 5                                                            |          |
+| price      | 价格     | 1000                                                         | 单位是分 |
+| stock      | 库存     | 10                                                           |          |
+| detail     | 商品描述 | 新西兰黄心，黄金奇异果                                       |          |
+| image      | 商品图片 | http://127.0.0.1:8083/images/6037baf8-5251-4560-be5a-32b8ee3823cf.png |          |
+
+请求示例
+
+```
+/admin/product/add
+```
+
+body：
+
+```
+{"id":3,"name":"早餐小面包 3","categoryId":5,"price":1000,"stock":10,"status":1,"detail":"好吃的小面包","image":"http://127.0.0.1:8083/images/6037baf8-5251-4560-be5a-32b8ee3823cf.png"}
+
+```
+
+
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+##### 3.1.4 删除商品
+
+| 请求地址 | /admin/product/delete |
+| -------- | --------------------- |
+| 请求方式 | POST                  |
+
+参数
+
+| 参数 | 参数含义 | 示例 | 备注 |
+| ---- | -------- | ---- | ---- |
+| id   | 商品的id | 1    |      |
+
+请求示例
+
+```
+/admin/product/delete?id=1
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+##### 3.1.5 批量上下架商品
+
+| 请求地址 | /admin/product/delete |
+| -------- | --------------------- |
+| 请求方式 | POST                  |
+
+参数
+
+| 参数       | 参数含义         | 示例  | 备注             |
+| ---------- | ---------------- | ----- | ---------------- |
+| ids        | 要更改的商品的id | 1,2,4 | 数组             |
+| sellStatus | 上下架状态       | 1     | 1是上架，0是下架 |
+
+请求示例
+
+```
+/admin/product/batchUpdateSellStatus?ids=1,2,4&sellStatus=1
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+
+```
+
+
+
+##### 3.1.6 商品列表(后台）
+
+| 请求地址 | /admin/product/list |
+| -------- | ------------------- |
+| 请求方式 | GET                 |
+
+参数
+
+| 参数     | 参数含义 | 示例 | 备注                   |
+| -------- | -------- | ---- | ---------------------- |
+| pageNum  | 页数     | 1    | 默认会按照修改时间倒序 |
+| pageSize | 每页条数 | 10   |                        |
+
+请求示例
+
+```
+/admin/product/list?pageSize=5&pageNum=1 
+```
+
+
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "total": 20,
+    "list": [
+      {
+        "id": 40,
+        "name": "胡萝卜",
+        "image": "http://127.0.0.1:8083/images/huluobo.jpg",
+        "detail": "商品名称：绿鲜知胡萝卜商品编号：4116192商品毛重：1.07kg商品产地：北京包装：简装分类：萝卜烹饪建议：火锅，炒菜，炖菜",
+        "categoryId": 18,
+        "price": 222,
+        "stock": 222,
+        "status": 1,
+        "createTime": "2019-12-28T08:06:34.000+0000",
+        "updateTime": "2020-02-10T16:53:25.000+0000"
+      }
+    ],
+    "pageNum": 1,
+    "pageSize": 1,
+    "size": 1,
+    "startRow": 1,
+    "endRow": 1,
+    "pages": 20,
+    "prePage": 0,
+    "nextPage": 2,
+    "isFirstPage": true,
+    "isLastPage": false,
+    "hasPreviousPage": false,
+    "hasNextPage": true,
+    "navigatePages": 8,
+    "navigatepageNums": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 8
+  }
+}
+```
+
+
+
+#### 3.2 前台管理：
+
+##### 3.2.1 商品列表
+
+| 请求地址 | /product/list |
+| -------- | ------------- |
+| 请求方式 | GET           |
+
+参数
+
+| 参数       | 参数含义     | 示例       | 备注                      |
+| ---------- | ------------ | ---------- | ------------------------- |
+| orderBy    | 排序方式     | price desc | price desc 或者 price asc |
+| categoryId | 商品分类 Id  | 1          |                           |
+| keyword    | 搜索的关键词 | 桃         |                           |
+| pageNum    | 页数         | 1          |                           |
+| pageSize   | 每页条数     | 10         |                           |
+
+请求示例
+
+```
+/product/list?orderBy=price desc&categoryId=4
+```
+
+
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "total": 20,
+    "list": [
+      {
+        "id": 2,
+        "name": "澳洲进口大黑车厘子大樱桃包甜黑樱桃大果多汁 500g 特大果",
+        "image": "http://127.0.0.1:8083/images/chelizi2.jpg",
+        "detail": "商品毛重：1.0kg货号：608323093445原产地：智利类别：美早热卖时间：1月，11月，12月国产/进口：进口售卖方式：单品",
+        "categoryId": 14,
+        "price": 50,
+        "stock": 100,
+        "status": 1,
+        "createTime": "2019-12-18T08:08:15.000+0000",
+        "updateTime": "2020-02-10T16:08:25.000+0000"
+      },
+      {
+        "id": 3,
+        "name": "茶树菇 美味菌菇 东北山珍 500g",
+        "image": "http://127.0.0.1:8083/images/chashugu.jpg",
+        "detail": "商品名：茶树菇 商品特点：美味菌菇 东北山珍 500g",
+        "categoryId": 15,
+        "price": 1000,
+        "stock": 6,
+        "status": 1,
+        "createTime": "2019-12-18T08:10:50.000+0000",
+        "updateTime": "2020-02-10T16:42:42.000+0000"
+      },
+      {
+        "id": 14,
+        "name": "Zespri佳沛 新西兰阳光金奇异果 6个装",
+        "image": "http://127.0.0.1:8083/images/mihoutao2.jpg",
+        "detail": "商品编号：4635056商品毛重：0.71kg商品产地：新西兰类别：金果包装：简装国产/进口：进口原产地：新西兰",
+        "categoryId": 12,
+        "price": 39,
+        "stock": 77,
+        "status": 1,
+        "createTime": "2019-12-18T08:11:13.000+0000",
+        "updateTime": "2020-02-10T15:36:48.000+0000"
+      },
+      {
+        "id": 17,
+        "name": "红颜奶油草莓 约重500g/20-24颗 新鲜水果",
+        "image": "http://127.0.0.1:8083/images/caomei2.jpg",
+        "detail": "商品毛重：0.58kg商品产地：丹东/南通/武汉类别：红颜草莓包装：简装国产/进口：国产",
+        "categoryId": 11,
+        "price": 99,
+        "stock": 84,
+        "status": 1,
+        "createTime": "2019-12-18T08:11:13.000+0000",
+        "updateTime": "2020-02-10T15:37:48.000+0000"
+      },
+      {
+        "id": 21,
+        "name": "智利原味三文鱼排（大西洋鲑）240g/袋 4片装",
+        "image": "http://127.0.0.1:8083/images/sanwenyu2.jpg",
+        "detail": "商品毛重：260.00g商品产地：中国大陆保存状态：冷冻国产/进口：进口包装：简装类别：三文鱼海水/淡水：海水烹饪建议：煎炸，蒸菜，烧烤原产地：智利",
+        "categoryId": 8,
+        "price": 499,
+        "stock": 1,
+        "status": 1,
+        "createTime": "2019-12-28T07:13:07.000+0000",
+        "updateTime": "2020-02-10T15:38:46.000+0000"
+      },
+      {
+        "id": 22,
+        "name": "即食海参大连野生辽刺参 新鲜速食 特级生鲜海产 60~80G",
+        "image": "http://127.0.0.1:8083/images/haishen.jpg",
+        "detail": "商品毛重：1.5kg商品产地：中国大陆贮存条件：冷冻重量：50-99g国产/进口：国产适用场景：养生滋补包装：袋装原产地：辽宁年限：9年以上等级：特级食品工艺：冷冻水产热卖时间：9月类别：即食海参固形物含量：70%-90%特产品类：大连海参售卖方式：单品",
+        "categoryId": 13,
+        "price": 699,
+        "stock": 3,
+        "status": 1,
+        "createTime": "2019-12-28T07:16:29.000+0000",
+        "updateTime": "2020-02-10T16:04:29.000+0000"
+      },
+      {
+        "id": 23,
+        "name": "澳大利亚直采鲜橙 精品澳橙12粒 单果130-180g",
+        "image": "http://127.0.0.1:8083/images/chengzi.jpg",
+        "detail": "商品毛重：2.27kg商品产地：澳大利亚类别：脐橙包装：简装国产/进口：进口原产地：澳大利亚",
+        "categoryId": 4,
+        "price": 12,
+        "stock": 12,
+        "status": 1,
+        "createTime": "2019-12-28T08:02:13.000+0000",
+        "updateTime": "2020-02-10T16:40:15.000+0000"
+      },
+      {
+        "id": 24,
+        "name": "智利帝王蟹礼盒装4.4-4.0斤/只 生鲜活鲜熟冻大螃蟹",
+        "image": "http://127.0.0.1:8083/images/diwangxie.jpg",
+        "detail": "商品毛重：3.0kg商品产地：智利大闸蟹售卖方式：公蟹重量：2000-4999g套餐份量：5人份以上国产/进口：进口海水/淡水：海水烹饪建议：火锅，炒菜，烧烤，刺身，加热即食包装：简装原产地：智利保存状态：冷冻公单蟹重：5.5两及以上分类：帝王蟹特产品类：其它售卖方式：单品",
+        "categoryId": 7,
+        "price": 222,
+        "stock": 222,
+        "status": 1,
+        "createTime": "2019-12-28T08:06:34.000+0000",
+        "updateTime": "2020-02-10T16:05:05.000+0000"
+      },
+      {
+        "id": 25,
+        "name": "新疆库尔勒克伦生无籽红提 国产新鲜红提葡萄 提子 5斤装",
+        "image": "http://127.0.0.1:8083/images/hongti.jpg",
+        "detail": "商品毛重：2.5kg商品产地：中国大陆货号：XZL201909002重量：2000-3999g套餐份量：2人份国产/进口：国产是否有机：非有机单箱规格：3个装，4个装，5个装类别：红提包装：简装原产地：中国大陆售卖方式：单品",
+        "categoryId": 28,
+        "price": 222,
+        "stock": 222,
+        "status": 1,
+        "createTime": "2019-12-28T08:06:34.000+0000",
+        "updateTime": "2020-02-10T16:44:05.000+0000"
+      },
+      {
+        "id": 26,
+        "name": "越南进口红心火龙果 4个装 红肉中果 单果约330-420g",
+        "image": "http://127.0.0.1:8083/images/hongxinhuolongguo.jpg",
+        "detail": "商品毛重：1.79kg商品产地：越南重量：1000-1999g类别：红心火龙果包装：简装国产/进口：进口",
+        "categoryId": 28,
+        "price": 222,
+        "stock": 222,
+        "status": 1,
+        "createTime": "2019-12-28T08:06:34.000+0000",
+        "updateTime": "2020-02-10T16:44:11.000+0000"
+      }
+    ],
+    "pageNum": 1,
+    "pageSize": 10,
+    "size": 10,
+    "startRow": 1,
+    "endRow": 10,
+    "pages": 2,
+    "prePage": 0,
+    "nextPage": 2,
+    "isFirstPage": true,
+    "isLastPage": false,
+    "hasPreviousPage": false,
+    "hasNextPage": true,
+    "navigatePages": 8,
+    "navigatepageNums": [
+      1,
+      2
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 2
+  }
+}
+```
+
+
+
+##### 3.2.2 商品详情
+
+| 请求地址 | /product/detail |
+| -------- | --------------- |
+| 请求方式 | GET             |
+
+参数
+
+| 参数 | 参数含义 | 示例 | 备注 |
+| ---- | -------- | ---- | ---- |
+| id   | 商品ID   | 2    |      |
+
+请求示例
+
+```
+/product/detail?id=2
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "id": 2,
+    "name": "澳洲进口大黑车厘子大樱桃包甜黑樱桃大果多汁 500g 特大果",
+    "image": "http://127.0.0.1:8083/images/chelizi2.jpg",
+    "detail": "商品毛重：1.0kg货号：608323093445原产地：智利类别：美早热卖时间：1月，11月，12月国产/进口：进口售卖方式：单品",
+    "categoryId": 14,
+    "price": 50,
+    "stock": 100,
+    "status": 1,
+    "createTime": "2019-12-18T08:08:15.000+0000",
+    "updateTime": "2020-02-10T16:08:25.000+0000"
+  }
+}
+```
+
+
+
+### 3.3 代码和测试：
+
+#### 3.3.1 代码
+
+参见github
+
+#### 3.3.2 测试
+
+![img.png](img/img39.png)
+
+![img_1.png](img/img40.png)
+
+![img_2.png](img/img41.png)
+
+![img_3.png](img/img42.png)
+
+![img_4.png](img/img43.png)
+
+![img_5.png](img/img44.png)
+
+![img_6.png](img/img45.png)
+
+![img_7.png](img/img46.png)
