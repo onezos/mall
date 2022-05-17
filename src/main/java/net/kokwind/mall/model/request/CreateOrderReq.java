@@ -68,4 +68,5 @@ public class CreateOrderReq {
     public void setPaymentType(Integer paymentType) {
         this.paymentType = paymentType;
     }
+
 }
