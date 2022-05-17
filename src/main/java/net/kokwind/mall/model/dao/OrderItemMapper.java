@@ -3,6 +3,8 @@ package net.kokwind.mall.model.dao;
 import net.kokwind.mall.model.entity.OrderItem;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface OrderItemMapper {
     int deleteByPrimaryKey(Integer id);
@@ -16,4 +18,6 @@ public interface OrderItemMapper {
     int updateByPrimaryKeySelective(OrderItem row);
 
     int updateByPrimaryKey(OrderItem row);
+
+    List<OrderItem> selectByOrderNo(String orderNo);
 }

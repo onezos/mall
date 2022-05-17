@@ -135,5 +135,18 @@
     <orderEntry type="library" name="Maven: org.reactivestreams:reactive-streams:1.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-cache:2.5.5" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.3.10" level="project" />
+    <orderEntry type="library" name="Maven: com.google.zxing:javase:3.5.0" level="project" />
+    <orderEntry type="library" name="Maven: com.google.zxing:core:3.5.0" level="project" />
+    <orderEntry type="library" name="Maven: com.beust:jcommander:1.82" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: com.github.jai-imageio:jai-imageio-core:1.4.0" level="project" />
+    <orderEntry type="module-library">
+      <library name="Maven: net.kokeind:anti-piracy:0.0.1-SNAPSHOT">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/src/main/resources/lib/anti-piracy.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

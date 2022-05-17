@@ -89,8 +89,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.kokeind</groupId>
+            <artifactId>anti-piracy</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/anti-piracy.jar</systemPath>
+        </dependency>
     </dependencies>
+
 
     <build>
         <plugins>

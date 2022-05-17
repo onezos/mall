@@ -3084,4 +3084,440 @@ body：
 
 
 
+## 5 订单模块
+
+### 5.1 文档接口
+
+#### 5.1.1  前台：创建订单
+
+| 请求地址 | /order/create |
+| -------- | ------------- |
+| 请求方式 | POST          |
+
+参数
+
+| 参数            | 参数含义   | 示例        | 备注 |
+| --------------- | ---------- | ----------- | ---- |
+| receiverName    | 收件人姓名 | 小慕        |      |
+| receiverMobile  | 收件人电话 | 18888888888 |      |
+| receiverAddress | 收件人地址 | 中国慕城    |      |
+
+请求示例
+
+```
+/order/create
+```
+
+body:
+
+```
+{"receiverName":"小慕","receiverMobile":"18888888888","receiverAddress":"中国慕城"}
+```
+
+这三个参数都是必传
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": orderNo
+}
+```
+
+
+
+#### 5.1.2 前台：订单详情
+
+| 请求地址 | /order/detail |
+| -------- | ------------- |
+| 请求方式 | GET           |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/order/detail?orderNo=101442166222
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "orderNo": "116214445684",
+    "userId": 9,
+    "totalPrice": 1000,
+    "receiverName": "小慕",
+    "receiverMobile": "18888888888",
+    "receiverAddress": "中国慕城",
+    "orderStatus": 10,
+    "postage": 0,
+    "paymentType": 1,
+    "deliveryTime": null,
+    "payTime": null,
+    "endTime": null,
+    "createTime": "2020-02-11T08:21:44.000+0000",
+    "orderItemVOList": [
+      {
+        "orderNo": "116214445684",
+        "productName": "茶树菇 美味菌菇 东北山珍 500g",
+        "productImg": "http://127.0.0.1:8083/images/chashugu.jpg",
+        "unitPrice": 1000,
+        "quantity": 1,
+        "totalPrice": 1000
+      }
+    ],
+    "orderStatusName": "未付款（初始状态）"
+  }
+}
+```
+
+
+
+#### 5.1.3 前台：订单列表
+
+| 请求地址 | /order/list |
+| -------- | ----------- |
+| 请求方式 | GET         |
+
+| 参数     | 参数含义 | 示例 | 备注 |
+| -------- | -------- | ---- | ---- |
+| pageNum  | 页数     | 1    |      |
+| pageSize | 每页条数 | 10   |      |
+
+请求示例
+
+```
+/order/list?pageNum=1&pageSize=10
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "total": 1,
+    "list": [
+      {
+        "orderNo": "116214445684",
+        "userId": 9,
+        "totalPrice": 1000,
+        "receiverName": "小慕",
+        "receiverMobile": "18888888888",
+        "receiverAddress": "中国慕城",
+        "orderStatus": 10,
+        "postage": 0,
+        "paymentType": 1,
+        "deliveryTime": null,
+        "payTime": null,
+        "endTime": null,
+        "createTime": "2020-02-11T08:21:44.000+0000",
+        "orderItemList": [
+          {
+            "orderNo": "116214445684",
+            "productName": "茶树菇 美味菌菇 东北山珍 500g",
+            "productImg": "http://127.0.0.1:8083/images/chashugu.jpg",
+            "unitPrice": 1000,
+            "quantity": 1,
+            "totalPrice": 1000
+          }
+        ],
+        "orderStatusName": "未付款（初始状态）"
+      }
+    ],
+    "pageNum": 1,
+    "pageSize": 10,
+    "size": 1,
+    "startRow": 1,
+    "endRow": 1,
+    "pages": 1,
+    "prePage": 0,
+    "nextPage": 0,
+    "isFirstPage": true,
+    "isLastPage": true,
+    "hasPreviousPage": false,
+    "hasNextPage": false,
+    "navigatePages": 8,
+    "navigatepageNums": [
+      1
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 1
+  }
+}
+```
+
+
+
+#### 5.1.4 前台：取消订单
+
+| 请求地址 | /order/cancel |
+| -------- | ------------- |
+| 请求方式 | POST          |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/order/cancel?orderNo=101442166222
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+#### 5.1.5 生成支付二维码
+
+在支付的时候显示的二维码
+
+| 请求地址 | /order/qrcode |
+| -------- | ------------- |
+| 请求方式 | POST          |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/order/qrcode?orderNo=101442166222
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": "127.0.0.1:8082/images/101442166222.png"
+}
+```
+
+
+
+#### 5.1.6 前台：支付订单
+
+| 请求地址 | /pay |
+| -------- | ---- |
+| 请求方式 | GET  |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/pay?orderNo=101442166222
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+
+#### 5.1.7 后台：订单列表
+
+| 请求地址 | /admin/order/list |
+| -------- | ----------------- |
+| 请求方式 | GET               |
+
+
+| 参数     | 参数含义 | 示例 | 备注 |
+| -------- | -------- | ---- | ---- |
+| pageNum  | 页数     | 1    |      |
+| pageSize | 每页条数 | 10   |      |
+
+请求示例
+
+```
+/admin/order/list?pageNum=1&pageSize=10
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": {
+    "total": 1,
+    "list": [
+      {
+        "orderNo": "116214445684",
+        "userId": 9,
+        "totalPrice": 1000,
+        "receiverName": "小慕",
+        "receiverMobile": "18888888888",
+        "receiverAddress": "中国慕城",
+        "orderStatus": 10,
+        "postage": 0,
+        "paymentType": 1,
+        "deliveryTime": null,
+        "payTime": null,
+        "endTime": null,
+        "createTime": "2020-02-11T08:21:44.000+0000",
+        "orderItemList": [
+          {
+            "orderNo": "116214445684",
+            "productName": "茶树菇 美味菌菇 东北山珍 500g",
+            "productImg": "http://127.0.0.1:8083/images/chashugu.jpg",
+            "unitPrice": 1000,
+            "quantity": 1,
+            "totalPrice": 1000
+          }
+        ],
+        "orderStatusName": "未付款（初始状态）"
+      }
+    ],
+    "pageNum": 1,
+    "pageSize": 1,
+    "size": 1,
+    "startRow": 0,
+    "endRow": 0,
+    "pages": 1,
+    "prePage": 0,
+    "nextPage": 0,
+    "isFirstPage": true,
+    "isLastPage": true,
+    "hasPreviousPage": false,
+    "hasNextPage": false,
+    "navigatePages": 8,
+    "navigatepageNums": [
+      1
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 1
+  }
+}
+```
+
+
+
+
+
+#### 5.1.8 后台：订单发货
+
+| 请求地址 | /admin/order/delivered |
+| -------- | ---------------------- |
+| 请求方式 | POST                   |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/admin/order/delivered?orderNo=118213761282
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+
+#### 5.1.9 订单完结
+
+| 请求地址 | /order/finish |
+| -------- | ------------- |
+| 请求方式 | POST          |
+
+参数
+
+| 参数    | 参数含义 | 示例         | 备注 |
+| ------- | -------- | ------------ | ---- |
+| orderNo | 订单号   | 101442166222 |      |
+
+请求示例
+
+```
+/order/finish?orderNo=118213761282
+```
+
+返回示例
+
+```
+{
+  "status": 10000,
+  "msg": "SUCCESS",
+  "data": null
+}
+```
+
+
+
+### 5.2 代码和测试
+
+![img.png](img/img53.png)
+
+![img_1.png](img/img54.png)
+
+![img_2.png](img/img55.png)
+
+![img_3.png](img/img56.png)
+
+![img_4.png](img/img57.png)
+
+![img_5.png](img/img58.png)
+
+![img_6.png](img/img59.png)
+
+![img_7.png](img/img60.png)
+
+![img_8.png](img/img61.png)
+
+
+
+
+
+
+
 
